@@ -33,8 +33,7 @@ export default function Home() {
   const panels = [0, 1, 2, 3, 4];
 
   return (
-    <main className="min-h-screen bg-pit-black overflow-hidden relative flex flex-col">
-
+    <main className="flex-1 bg-pit-black overflow-hidden relative flex flex-col">
       {/* Intro panels */}
       {animating && (
         <div className="fixed inset-0 z-50 flex cursor-pointer"
@@ -77,7 +76,7 @@ export default function Home() {
 
       {/* Hero */}
         <section
-          className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-6 transition-all duration-700"
+          className="flex-1 max-h-screen flex flex-col items-center justify-center px-8 py-12 text-center gap-6 transition-all duration-700"
           style={{ filter: animating ? "blur(8px)" : "blur(0px)" }}>
         <div className="flex items-center gap-3 mb-2">
           <div className="w-8 h-1 bg-f1-red"></div>
@@ -92,7 +91,7 @@ export default function Home() {
         </h1>
 
         <p className="text-f1-gray text-lg max-w-md">
-          Race data. Lap analysis. Driver telemetry. All in one pit wall.
+          Race data. Lap analysis. Driver telemetry. All in one Pit wall.
         </p>
 
         <Link

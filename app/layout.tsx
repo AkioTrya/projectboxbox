@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body className="bg-pit-black text-f1-white min-h-screen font-body">
+      <body className="bg-pit-black text-f1-white h-screen flex flex-col overflow-hidden font-body">
         <nav className="text-f1-red font-display tracking-widest transition-colors">
           <span className="text-f1-red font-display tracking-widest text-sm border-b-2 border-f1-red">
             BOXBOX
