@@ -1,6 +1,6 @@
 import React from "react";
-import Link from "next/link";
 import "./globals.css";
+import Navbar from "./components/Navbar";
 
 export const metadata = {
   title: "ProjectBoxbox",
@@ -16,17 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="bg-pit-black text-f1-white h-screen flex flex-col overflow-hidden font-body">
-        <nav className="text-f1-red font-display tracking-widest transition-colors">
-          <span className="text-f1-red font-display tracking-widest text-sm border-b-2 border-f1-red">
-            BOXBOX
-          </span>
-          <Link href="/" className="text-f1-gray hover:text-f1-white text-sm transition-colors">
-            Home
-          </Link>
-          <Link href="/dashboard" className="text-f1-gray hover:text-f1-white text-sm transition-colors">
-            Dashboard
-          </Link>
-        </nav>
+        <Navbar />
         {children}
       </body>
     </html>
