@@ -41,6 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 # pipeline cache
+pipeline/.env
 pipeline/cache
 pipeline/venv
-.env.local
+
