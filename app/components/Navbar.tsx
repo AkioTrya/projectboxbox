@@ -43,6 +43,18 @@ export default function Navbar() {
                     }`}>
                 TEAMS
             </Link>
+            <Link
+                href="/newbie"
+                className={`text-sm font-display tracking-wider transition-colors ${pathname.startsWith("/newbie") ? "text-f1-white" : "text-f1-gray hover:text-f1-white"
+                    }`}>
+                NEWBIE
+            </Link>
+            <Link
+                href="/education"
+                className={`text-sm font-display tracking-wider transition-colors ${pathname.startsWith("/education") ? "text-f1-white" : "text-f1-gray hover:text-f1-white"
+                    }`}>
+                EDUCATION
+            </Link>
             {/* Season selector */}
             <div className="ml-auto relative">
                 <button
