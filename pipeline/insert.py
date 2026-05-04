@@ -52,10 +52,11 @@ for year in YEARS:
             )
             session_id = cur.fetchone()[0]
 
-            cur.execute("SELECT COUNT(*) FROM laps WHERE session_id = %s", (session_id,))
-            if cur.fetchone()[0] > 0:
-                print(f"  SKIP - laps already exists for session {session_id}")
-                continue
+        # Check for duplicate laps in all cases
+        cur.execute("SELECT COUNT(*) FROM laps WHERE session_id = %s", (session_id,))
+        if cur.fetchone()[0] > 0:
+            print(f"  SKIP - laps already exists for session {session_id}")
+            continue
                 
 
         drivers = session.laps["Driver"].unique()

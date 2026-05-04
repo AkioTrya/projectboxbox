@@ -170,6 +170,8 @@ function DashboardContent() {
     const [showOnboarding, setShowOnboarding] = useState(false);
 
     useEffect(() => {
+        if (typeof window === 'undefined') return;
+        
         const savedThemeId = localStorage.getItem("boxbox_theme");
         const savedFocus = localStorage.getItem("boxbox_focus");
         
@@ -190,8 +192,10 @@ function DashboardContent() {
     }, []);
 
     const handleOnboardingComplete = (themeId: string, focusValue: string) => {
-        localStorage.setItem("boxbox_theme", themeId);
-        localStorage.setItem("boxbox_focus", focusValue);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem("boxbox_theme", themeId);
+            localStorage.setItem("boxbox_focus", focusValue);
+        }
         setTheme(THEMES[themeId]);
         setFocus(focusValue);
         setShowOnboarding(false);
@@ -326,7 +330,7 @@ function DashboardContent() {
                         {['pace', 'dist', 'tyre'].map((f) => (
                             <button 
                                 key={f}
-                                onClick={() => { setFocus(f); localStorage.setItem("boxbox_focus", f); }}
+                                onClick={() => { setFocus(f); if (typeof window !== 'undefined') localStorage.setItem("boxbox_focus", f); }}
                                 className={`flex-1 py-2 text-[9px] font-display uppercase tracking-widest transition-all ${focus === f ? 'bg-f1-white/10 text-f1-white' : 'text-f1-gray hover:text-f1-white'}`}
                                 style={{ backgroundColor: focus === f ? theme?.accentSoft : '' }}
                             >
