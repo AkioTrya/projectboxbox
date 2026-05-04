@@ -233,7 +233,7 @@ function DashboardContent() {
                 bins.push({ bin: b, display: formatLapTime(b) });
             }
 
-            const dataMap = bins.map(b => ({
+            const dataMap: Array<{ label: string; bin: number; [key: string]: any }> = bins.map(b => ({
                 label: b.display,
                 bin: b.bin,
                 ...activeDrivers.reduce((acc, d) => ({ ...acc, [d]: 0 }), {})
