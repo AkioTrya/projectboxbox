@@ -366,6 +366,7 @@ function DashboardContent() {
                                 <option value="2">2x</option>
                                 <option value="5">5x</option>
                                 <option value="10">10x</option>
+                                <option value="50">50x</option>
                             </select>
                         </div>
                     </div>

@@ -102,7 +102,7 @@ const TrackMap: React.FC<TrackMapProps> = ({
     const animate = (time: number) => {
         if (previousTimeRef.current !== undefined && isPlaying) {
             const deltaTime = time - previousTimeRef.current;
-            setCurrentTime(prev => prev + deltaTime * playbackSpeed);
+            setCurrentTime(prev => prev + (deltaTime / 90000) * playbackSpeed);
         }
         previousTimeRef.current = time;
         requestRef.current = requestAnimationFrame(animate);
@@ -196,50 +196,27 @@ const TrackMap: React.FC<TrackMapProps> = ({
             const driverLaps = laps.filter(l => l.driver === driver).sort((a, b) => a.lap_number - b.lap_number);
             if (driverLaps.length === 0) return null;
 
-            let accumulatedTime = 0;
-            let currentLap = driverLaps[0];
             let lapProgress = 0;
+            const lapIndex = Math.min(Math.floor(currentTime), driverLaps.length - 1);
+            let currentLap = driverLaps[lapIndex];
+            lapProgress = currentTime % 1;
 
-            // Find current lap based on absolute time
-            for (const lap of driverLaps) {
-                const lapTime = lap.lap_time_ms || 90000;
-                if (accumulatedTime + lapTime > currentTime) {
-                    currentLap = lap;
-                    lapProgress = (currentTime - accumulatedTime) / lapTime;
-                    break;
-                }
-                accumulatedTime += lapTime;
-                // If we've reached the very end of all laps
-                if (lap === driverLaps[driverLaps.length - 1]) {
-                    currentLap = lap;
-                    lapProgress = 1;
-                }
-            }
+            const prevLap = driverLaps[lapIndex - 1];
+            const isPitting = prevLap && currentLap.tyre_life < prevLap.tyre_life;
 
             let sector = 1;
-            if (currentLap.s1_ms && currentLap.s2_ms) {
-                const lapTime = currentLap.lap_time_ms || (currentLap.s1_ms + currentLap.s2_ms + (currentLap.s3_ms || 30000));
-                const timeInLap = currentTime - accumulatedTime;
-                const s1_boundary = trackData.sector_boundaries?.s1 || 0.33;
-                const s2_boundary = trackData.sector_boundaries?.s2 || 0.66;
-
-                if (timeInLap < currentLap.s1_ms) {
-                    sector = 1;
-                    lapProgress = Math.min(1, timeInLap / currentLap.s1_ms) * s1_boundary;
-                } else if (timeInLap < currentLap.s1_ms + currentLap.s2_ms) {
-                    sector = 2;
-                    lapProgress = s1_boundary + Math.min(1, (timeInLap - currentLap.s1_ms) / currentLap.s2_ms) * (s2_boundary - s1_boundary);
-                } else {
-                    sector = 3;
-                    const s3_ms = currentLap.s3_ms || (lapTime - currentLap.s1_ms - currentLap.s2_ms);
-                    lapProgress = s2_boundary + Math.min(1, (timeInLap - currentLap.s1_ms - currentLap.s2_ms) / s3_ms) * (1 - s2_boundary);
-                }
+            if (currentLap.s1_ms && currentLap.lap_time_ms) {
+                const s1_frac = currentLap.s1_ms / currentLap.lap_time_ms;
+                const s2_frac = (currentLap.s1_ms + currentLap.s2_ms) / currentLap.lap_time_ms;
+                if (lapProgress < s2_frac) sector = 2;
+                else sector = 3;
             }
 
             const pos = getXYAtProgress(lapProgress);
 
             return {
                 driver,
+                isPitting,
                 team: currentLap.team,
                 color: driverColors[driver] || "#fff",
                 x: pos.x,
@@ -340,6 +317,13 @@ const TrackMap: React.FC<TrackMapProps> = ({
                                         strokeWidth: 2 / zoom
                                     }}
                                 />
+                                {pos.isPitting && (
+                                    <polygon
+                                        points={`0,${-20 / zoom} ${8 / zoom},${-8 / zoom} ${-8 / zoom},${-8 / zoom}`}
+                                        fill="#FFD700"
+                                        style={{ filter: `drop-shadow(0 0 ${6 / zoom}px #FFD700)` }}
+                                    />
+                                )}
                                 <text 
                                     y={-12 / zoom} 
                                     textAnchor="middle" 
@@ -425,7 +409,7 @@ const TrackMap: React.FC<TrackMapProps> = ({
 
             {/* Full Grid Timing Overlay */}
             <div className="absolute bottom-0 left-0 right-0 max-h-[35%] overflow-y-auto bg-pit-black/60 backdrop-blur-xl border-t border-pit-border/50 p-4 custom-scrollbar">
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3">
                     {driverPositions.map((pos, idx) => {
                         return (
                             <div 
