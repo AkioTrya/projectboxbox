@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     try {
         const laps = await sql`
-            SELECT driver, team, lap_number, lap_time_ms, compound, tyre_life, is_personal_best
+            SELECT driver, team, lap_number, lap_time_ms, compound, tyre_life, is_personal_best, s1_ms, s2_ms, s3_ms
             FROM laps
             WHERE session_id = ${parseInt(session_id)}
             AND lap_time_ms IS NOT NULL
@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
         `;
 
         return NextResponse.json(laps);
-    } catch (error) {
-        console.error('Database error:', error);
-        return NextResponse.json({ error: "Failed to fetch laps" }, { status: 500 });
+    } catch (error: any) {
+        console.error('Database error in /api/laps:', error);
+        return NextResponse.json({ error: "Failed to fetch laps", details: error.message }, { status: 500 });
     }
 }

@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid, BarChart, Bar } from "recharts";
 import { THEMES, TYRE_COLORS, Theme } from "@/app/lib/themes";
+import TrackMap from "@/app/components/TrackMap";
 
 const DRIVER_COLORS: Record<string, string> = {
     HAM: "#00D2BE", VER: "#3671C6", LEC: "#E8002D",
@@ -168,6 +169,10 @@ function DashboardContent() {
     const [theme, setTheme] = useState<Theme | null>(null);
     const [focus, setFocus] = useState<string>("pace");
     const [showOnboarding, setShowOnboarding] = useState(false);
+    
+    // Playback state for Map
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -327,7 +332,7 @@ function DashboardContent() {
                 <div className="flex flex-col gap-2">
                     <label className="text-[10px] font-display font-bold text-f1-white tracking-widest uppercase">Analysis Focus</label>
                     <div className="flex border border-pit-border p-1 bg-pit-dark">
-                        {['pace', 'dist', 'tyre'].map((f) => (
+                        {['pace', 'dist', 'tyre', 'map'].map((f) => (
                             <button 
                                 key={f}
                                 onClick={() => { setFocus(f); if (typeof window !== 'undefined') localStorage.setItem("boxbox_focus", f); }}
@@ -339,6 +344,32 @@ function DashboardContent() {
                         ))}
                     </div>
                 </div>
+
+                {/* Map Controls */}
+                {focus === "map" && (
+                    <div className="flex flex-col gap-4 p-4 border border-pit-border bg-pit-dark shadow-inner">
+                        <label className="text-[10px] font-display font-bold text-f1-white tracking-widest uppercase">Simulation Control</label>
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={() => setIsPlaying(!isPlaying)}
+                                className="flex-1 py-2 bg-f1-red text-f1-white font-display text-[10px] uppercase tracking-widest hover:bg-white hover:text-f1-red transition-all"
+                            >
+                                {isPlaying ? "PAUSE ||" : "PLAY ►"}
+                            </button>
+                            <select 
+                                value={playbackSpeed}
+                                onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
+                                className="bg-pit-panel text-f1-white border border-pit-border px-2 py-2 font-display text-[9px] outline-none"
+                            >
+                                <option value="0.5">0.5x</option>
+                                <option value="1">1x</option>
+                                <option value="2">2x</option>
+                                <option value="5">5x</option>
+                                <option value="10">10x</option>
+                            </select>
+                        </div>
+                    </div>
+                )}
 
                 {/* Outlier Filter */}
                 {(focus === "pace" || focus === "dist") && (
@@ -420,11 +451,11 @@ function DashboardContent() {
                                 <div className="flex items-center gap-2">
                                     <div className="w-4 h-0.5" style={{ backgroundColor: theme?.accent || '#e8002d' }}></div>
                                     <h1 className="text-3xl font-display font-bold tracking-widest uppercase italic">
-                                        {focus === "pace" ? "Lap performance" : focus === "dist" ? "Pace distribution" : "Tyre degradation"}
+                                        {focus === "pace" ? "Lap performance" : focus === "dist" ? "Pace distribution" : focus === "tyre" ? "Tyre degradation" : "Live Simulation"}
                                     </h1>
                                 </div>
                                 <p className="text-f1-gray text-[10px] font-display uppercase tracking-[0.3em] pl-6 opacity-60">
-                                    {focus === "pace" ? "Pace Analysis Telemetry" : focus === "dist" ? "Consistency & Spread Analysis" : "Tyre Compound & Life Analysis"}
+                                    {focus === "pace" ? "Pace Analysis Telemetry" : focus === "dist" ? "Consistency & Spread Analysis" : focus === "tyre" ? "Tyre Compound & Life Analysis" : "Real-time Track Positioning"}
                                 </p>
                             </div>
                             <div className="flex gap-10 text-right">
@@ -444,9 +475,20 @@ function DashboardContent() {
                             <div className="absolute top-0 left-0 w-8 h-8 border-t border-l opacity-30" style={{ borderColor: theme?.accent }}></div>
                             <div className="absolute bottom-0 right-0 w-8 h-8 border-b border-r opacity-30" style={{ borderColor: theme?.accent }}></div>
 
-                            <ResponsiveContainer width="100%" height="100%">
-                                {focus === "dist" ? (
-                                    <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                            <div className="w-full h-full">
+                                {focus === "map" ? (
+                                    <TrackMap 
+                                        circuit={currentSession?.circuit} 
+                                        drivers={activeDrivers}
+                                        driverColors={DRIVER_COLORS}
+                                        laps={laps}
+                                        isPlaying={isPlaying}
+                                        playbackSpeed={playbackSpeed}
+                                    />
+                                ) : (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        {focus === "dist" ? (
+                                            <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                                         <CartesianGrid strokeDasharray="1 1" stroke="#222" vertical={false} />
                                         <XAxis 
                                             dataKey="label" 
@@ -505,8 +547,10 @@ function DashboardContent() {
                                                 />
                                             ))}
                                     </LineChart>
+                                        )}
+                                    </ResponsiveContainer>
                                 )}
-                            </ResponsiveContainer>
+                            </div>
                         </div>
                     </>
                 ) : (
