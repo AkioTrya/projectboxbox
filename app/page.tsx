@@ -104,7 +104,7 @@ export default function Home() {
 
       {/* Bottom bar */}
       <div className="border-t border-pit-border px-8 py-4 flex justify-between items-center">
-        <span className="text-f1-gray text-xs font-display">2026 SEASON</span>
+        <span className="text-f1-gray text-xs font-display">2026 SEASON | BEST WITH DESKTOP, MOBILE VIEW ON FUTURE UPDATE</span>
         <div className="flex items-center gap-4">
           <button
             onClick={replay}
