@@ -61,7 +61,7 @@ const TrackMap: React.FC<TrackMapProps> = ({
     // Reset simulation when session changes
     useEffect(() => {
         setCurrentTime(0);
-        previousTimeRef.current = undefined;
+        previousTimeRef.current = null;
     }, [circuit, laps.length]);
 
     // Zoom handler
@@ -100,7 +100,7 @@ const TrackMap: React.FC<TrackMapProps> = ({
 
     // Animation Loop
     const animate = (time: number) => {
-        if (previousTimeRef.current !== undefined && isPlaying) {
+        if (previousTimeRef.current !== null && isPlaying) {
             const deltaTime = time - previousTimeRef.current;
             setCurrentTime(prev => prev + (deltaTime / 90000) * playbackSpeed);
         }
