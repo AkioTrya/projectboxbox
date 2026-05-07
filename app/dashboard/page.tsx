@@ -248,6 +248,7 @@ function DashboardContent() {
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
   const [gridCollapsed, setGridCollapsed] = useState(true); // collapsed by default on mobile
+  const [controlsCollapsed, setControlsCollapsed] = useState(true);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -435,165 +436,178 @@ function DashboardContent() {
               : "---"}
           </p>
         </div>
-        {/* Focus Toggle */}
-        <div className="flex flex-col gap-2">
-          <label className="text-[10px] font-display font-bold text-f1-white tracking-widest uppercase">
-            Analysis Focus
-          </label>
-          <div className="flex border border-pit-border p-1 bg-pit-dark">
-            {["pace", "dist", "tyre", "map"].map((f) => (
-              <button
-                key={f}
-                onClick={() => {
-                  setFocus(f);
-                  if (typeof window !== "undefined")
-                    localStorage.setItem("boxbox_focus", f);
-                }}
-                className={`flex-1 py-2 text-[9px] font-display uppercase tracking-widest transition-all ${focus === f ? "bg-f1-white/10 text-f1-white" : "text-f1-gray hover:text-f1-white"}`}
-                style={{
-                  backgroundColor: focus === f ? theme?.accentSoft : "",
-                }}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-        </div>
-        {/* Map Controls */}
-        {focus === "map" && (
-          <div className="flex flex-col gap-4 p-4 border border-pit-border bg-pit-dark shadow-inner">
+        <button
+          onClick={() => setControlsCollapsed((prev) => !prev)}
+          className="md:hidden w-full flex justify-between items-center py-2 border-t border-pit-border text-[10px] font-display text-f1-gray uppercase tracking-widest"
+        >
+          <span>Controls</span>
+          <span>{controlsCollapsed ? "▼ SHOW" : "▲ HIDE"}</span>
+        </button>
+        <div
+          className={`${controlsCollapsed ? "hidden" : "flex flex-col gap-8"} md:flex md:flex-col md:gap-8`}
+        >
+          {/* Focus Toggle */}
+          <div className="flex flex-col gap-2">
             <label className="text-[10px] font-display font-bold text-f1-white tracking-widest uppercase">
-              Simulation Control
+              Analysis Focus
             </label>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="flex-1 py-2 bg-f1-red text-f1-white font-display text-[10px] uppercase tracking-widest hover:bg-white hover:text-f1-red transition-all"
-              >
-                {isPlaying ? "PAUSE ||" : "PLAY ►"}
-              </button>
-              <select
-                value={playbackSpeed}
-                onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
-                className="bg-pit-panel text-f1-white border border-pit-border px-2 py-2 font-display text-[9px] outline-none"
-              >
-                <option value="0.5">0.5x</option>
-                <option value="1">1x</option>
-                <option value="2">2x</option>
-                <option value="5">5x</option>
-                <option value="10">10x</option>
-                <option value="50">50x</option>
-              </select>
+            <div className="flex border border-pit-border p-1 bg-pit-dark">
+              {["pace", "dist", "tyre", "map"].map((f) => (
+                <button
+                  key={f}
+                  onClick={() => {
+                    setFocus(f);
+                    if (typeof window !== "undefined")
+                      localStorage.setItem("boxbox_focus", f);
+                  }}
+                  className={`flex-1 py-2 text-[9px] font-display uppercase tracking-widest transition-all ${focus === f ? "bg-f1-white/10 text-f1-white" : "text-f1-gray hover:text-f1-white"}`}
+                  style={{
+                    backgroundColor: focus === f ? theme?.accentSoft : "",
+                  }}
+                >
+                  {f}
+                </button>
+              ))}
             </div>
           </div>
-        )}
-        {/* Outlier Filter */}
-        {(focus === "pace" || focus === "dist") && (
-          <div className="flex flex-col gap-4 p-4 border border-pit-border bg-pit-dark shadow-inner">
-            <div className="flex justify-between items-center">
+          {/* Map Controls */}
+          {focus === "map" && (
+            <div className="flex flex-col gap-4 p-4 border border-pit-border bg-pit-dark shadow-inner">
               <label className="text-[10px] font-display font-bold text-f1-white tracking-widest uppercase">
-                Filter Threshold
+                Simulation Control
               </label>
-              <span
-                className="font-display text-[10px]"
-                style={{ color: theme?.accent || "#e8002d" }}
-              >
-                {maxLapTime / 1000}S
-              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className="flex-1 py-2 bg-f1-red text-f1-white font-display text-[10px] uppercase tracking-widest hover:bg-white hover:text-f1-red transition-all"
+                >
+                  {isPlaying ? "PAUSE ||" : "PLAY ►"}
+                </button>
+                <select
+                  value={playbackSpeed}
+                  onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
+                  className="bg-pit-panel text-f1-white border border-pit-border px-2 py-2 font-display text-[9px] outline-none"
+                >
+                  <option value="0.5">0.5x</option>
+                  <option value="1">1x</option>
+                  <option value="2">2x</option>
+                  <option value="5">5x</option>
+                  <option value="10">10x</option>
+                  <option value="50">50x</option>
+                </select>
+              </div>
             </div>
-            <div className="flex flex-col gap-2">
-              <input
-                type="range"
-                min="60000"
-                max="300000"
-                step="1000"
-                value={maxLapTime}
-                onChange={(e) => setMaxLapTime(parseInt(e.target.value))}
-                className="w-full cursor-pointer"
-                style={{ accentColor: theme?.accent || "#e8002d" }}
-              />
+          )}
+          {/* Outlier Filter */}
+          {(focus === "pace" || focus === "dist") && (
+            <div className="flex flex-col gap-4 p-4 border border-pit-border bg-pit-dark shadow-inner">
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] font-display font-bold text-f1-white tracking-widest uppercase">
+                  Filter Threshold
+                </label>
+                <span
+                  className="font-display text-[10px]"
+                  style={{ color: theme?.accent || "#e8002d" }}
+                >
+                  {maxLapTime / 1000}S
+                </span>
+              </div>
+              <div className="flex flex-col gap-2">
+                <input
+                  type="range"
+                  min="60000"
+                  max="300000"
+                  step="1000"
+                  value={maxLapTime}
+                  onChange={(e) => setMaxLapTime(parseInt(e.target.value))}
+                  className="w-full cursor-pointer"
+                  style={{ accentColor: theme?.accent || "#e8002d" }}
+                />
+              </div>
+            </div>
+          )}
+          {/* Driver Selection */}
+          <div className="flex flex-col gap-4">
+            <div
+              className="flex justify-between items-center cursor-pointer md:cursor-default"
+              onClick={() => setGridCollapsed((prev) => !prev)}
+            >
+              <label className="text-[10px] font-display font-bold text-f1-white tracking-widest uppercase cursor-pointer md:cursor-default">
+                Grid Selection
+              </label>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={selectAllDrivers}
+                  className="text-[9px] font-display text-f1-gray hover:text-f1-white uppercase tracking-tighter transition-colors hidden md:block"
+                >
+                  All
+                </button>
+                <button
+                  onClick={clearAllDrivers}
+                  className="text-[9px] font-display text-f1-gray hover:text-f1-white uppercase tracking-tighter transition-colors hidden md:block"
+                >
+                  None
+                </button>
+                <span className="text-f1-gray text-xs md:hidden">
+                  {gridCollapsed ? "▼" : "▲"}
+                </span>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={selectAllDrivers}
+                  className="text-[9px] font-display text-f1-gray hover:text-f1-white uppercase tracking-tighter transition-colors"
+                >
+                  All
+                </button>
+                <button
+                  onClick={clearAllDrivers}
+                  className="text-[9px] font-display text-f1-gray hover:text-f1-white uppercase tracking-tighter transition-colors"
+                >
+                  None
+                </button>
+              </div>
+            </div>
+            <div
+              className={`grid grid-cols-3 gap-1.5 ${gridCollapsed ? "hidden md:grid" : "grid"}`}
+            >
+              {" "}
+              {driversInSession.map((driver) => (
+                <button
+                  key={driver}
+                  onClick={() => toggleDriver(driver)}
+                  style={{
+                    borderColor: activeDrivers.includes(driver)
+                      ? DRIVER_COLORS[driver] || "#ffffff"
+                      : "#2a2a2a",
+                    color: activeDrivers.includes(driver)
+                      ? "#ffffff"
+                      : "#4b5563",
+                    backgroundColor: activeDrivers.includes(driver)
+                      ? `${DRIVER_COLORS[driver]}1a`
+                      : "transparent",
+                  }}
+                  className="px-1 py-2 text-[10px] font-display border transition-all duration-300 hover:border-f1-gray"
+                >
+                  {driver}
+                </button>
+              ))}
             </div>
           </div>
-        )}
-        {/* Driver Selection */}
-        <div className="flex flex-col gap-4">
-          <div
-            className="flex justify-between items-center cursor-pointer md:cursor-default"
-            onClick={() => setGridCollapsed((prev) => !prev)}
-          >
-            <label className="text-[10px] font-display font-bold text-f1-white tracking-widest uppercase cursor-pointer md:cursor-default">
-              Grid Selection
-            </label>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={selectAllDrivers}
-                className="text-[9px] font-display text-f1-gray hover:text-f1-white uppercase tracking-tighter transition-colors hidden md:block"
-              >
-                All
-              </button>
-              <button
-                onClick={clearAllDrivers}
-                className="text-[9px] font-display text-f1-gray hover:text-f1-white uppercase tracking-tighter transition-colors hidden md:block"
-              >
-                None
-              </button>
-              <span className="text-f1-gray text-xs md:hidden">
-                {gridCollapsed ? "▼" : "▲"}
-              </span>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={selectAllDrivers}
-                className="text-[9px] font-display text-f1-gray hover:text-f1-white uppercase tracking-tighter transition-colors"
-              >
-                All
-              </button>
-              <button
-                onClick={clearAllDrivers}
-                className="text-[9px] font-display text-f1-gray hover:text-f1-white uppercase tracking-tighter transition-colors"
-              >
-                None
-              </button>
-            </div>
+          <div className="mt-auto pt-6 border-t border-pit-border flex justify-between items-center">
+            <button
+              onClick={() => router.push(`/season/${currentSession?.year}`)}
+              className="text-[10px] font-display text-f1-gray hover:text-f1-white transition-colors flex items-center gap-2 uppercase tracking-widest"
+            >
+              ← Archive
+            </button>
+            <button
+              onClick={() => setShowOnboarding(true)}
+              className="text-f1-gray hover:text-f1-white transition-transform hover:rotate-90 duration-500"
+              title="Personalization Settings"
+            >
+              ⚙️
+            </button>
           </div>
-          <div
-            className={`grid grid-cols-3 gap-1.5 ${gridCollapsed ? "hidden md:grid" : "grid"}`}
-          >
-            {" "}
-            {driversInSession.map((driver) => (
-              <button
-                key={driver}
-                onClick={() => toggleDriver(driver)}
-                style={{
-                  borderColor: activeDrivers.includes(driver)
-                    ? DRIVER_COLORS[driver] || "#ffffff"
-                    : "#2a2a2a",
-                  color: activeDrivers.includes(driver) ? "#ffffff" : "#4b5563",
-                  backgroundColor: activeDrivers.includes(driver)
-                    ? `${DRIVER_COLORS[driver]}1a`
-                    : "transparent",
-                }}
-                className="px-1 py-2 text-[10px] font-display border transition-all duration-300 hover:border-f1-gray"
-              >
-                {driver}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="mt-auto pt-6 border-t border-pit-border flex justify-between items-center">
-          <button
-            onClick={() => router.push(`/season/${currentSession?.year}`)}
-            className="text-[10px] font-display text-f1-gray hover:text-f1-white transition-colors flex items-center gap-2 uppercase tracking-widest"
-          >
-            ← Archive
-          </button>
-          <button
-            onClick={() => setShowOnboarding(true)}
-            className="text-f1-gray hover:text-f1-white transition-transform hover:rotate-90 duration-500"
-            title="Personalization Settings"
-          >
-            ⚙️
-          </button>
         </div>
       </aside>
       {/* Main Chart Area */}
