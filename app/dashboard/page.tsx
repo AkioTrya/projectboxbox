@@ -687,7 +687,7 @@ function DashboardContent() {
                 className="absolute bottom-0 right-0 w-8 h-8 border-b border-r opacity-30"
                 style={{ borderColor: theme?.accent }}
               ></div>
-              <div className="w-full h-full">
+              <div className="bg-pit-dark border border-pit-border p-4 font-display text-xs shadow-2xl backdrop-blur-md bg-opacity-95 min-w-[150px] max-w-[200px]">
                 {focus === "map" ? (
                   <TrackMap
                     circuit={currentSession?.circuit}
@@ -728,7 +728,11 @@ function DashboardContent() {
                             fontFamily: "var(--font-display)",
                           }}
                         />
-                        <Tooltip content={<CustomTooltip focus={focus} />} />
+                        <Tooltip
+                          content={<CustomTooltip focus={focus} />}
+                          allowEscapeViewBox={{ x: false, y: false }}
+                          position={{ x: 0, y: 0 }}
+                        />
                         {activeDrivers.map((driver) => (
                           <Bar
                             key={driver}
@@ -773,7 +777,11 @@ function DashboardContent() {
                           domain={["auto", "auto"]}
                           width={60}
                         />
-                        <Tooltip content={<CustomTooltip focus={focus} />} />
+                        <Tooltip
+                          content={<CustomTooltip focus={focus} />}
+                          allowEscapeViewBox={{ x: false, y: false }}
+                          position={{ x: 0, y: 0 }}
+                        />
                         {driversInSession
                           .filter((driver) => activeDrivers.includes(driver))
                           .map((driver) => (
