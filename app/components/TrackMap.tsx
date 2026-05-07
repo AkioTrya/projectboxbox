@@ -56,6 +56,12 @@ const TrackMap: React.FC<TrackMapProps> = ({
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [rotation, setRotation] = useState(0);
+  const [pinchDist, setPinchDist] = useState(0);
+
+  const handleRotate = () => {
+    setRotation((prev) => (prev + 90) % 360);
+  };
 
   const containerRef = useRef<HTMLDivElement>(null);
   const requestRef = useRef<number>(null);
@@ -104,6 +110,40 @@ const TrackMap: React.FC<TrackMapProps> = ({
 
   const handleMouseUp = () => setIsDragging(false);
 
+  // Touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.touches[0].clientX - offset.x,
+        y: e.touches[0].clientY - offset.y,
+      });
+    } else if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      setPinchDist(Math.sqrt(dx * dx + dy * dy));
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (e.touches.length === 1 && isDragging) {
+      setOffset({
+        x: e.touches[0].clientX - dragStart.x,
+        y: e.touches[0].clientY - dragStart.y,
+      });
+    } else if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const scale = dist / pinchDist;
+      setZoom((prev) => Math.min(Math.max(prev * scale, 0.5), 10));
+      setPinchDist(dist);
+    }
+  };
+
+  const handleTouchEnd = () => setIsDragging(false);
+
   // Fetch track data
   useEffect(() => {
     if (!circuit) return;
@@ -151,7 +191,7 @@ const TrackMap: React.FC<TrackMapProps> = ({
     const scale = availableSize / Math.max(trackWidth, trackHeight);
 
     const offsetX = (500 - trackWidth * scale) / 2;
-    const offsetY = (500 - trackHeight * scale) / 2 - 40;
+    const offsetY = (500 - trackHeight * scale) / 2;
 
     const scaledPoints = points.map((p) => ({
       x: (p.x - minX) * scale + offsetX,
@@ -203,7 +243,7 @@ const TrackMap: React.FC<TrackMapProps> = ({
     const scale = (500 - 50) / Math.max(trackWidth, trackHeight);
 
     const offsetX = (500 - trackWidth * scale) / 2;
-    const offsetY = (500 - trackHeight * scale) / 2 - 40;
+    const offsetY = (500 - trackHeight * scale) / 2;
 
     return {
       x: (rawX - minX) * scale + offsetX,
@@ -302,14 +342,16 @@ const TrackMap: React.FC<TrackMapProps> = ({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       <div className="flex-1 relative">
         <svg viewBox="0 0 500 500" className="w-full h-full">
+          {/* Track group - rotates */}
           <g
-            transform={`translate(${offset.x}, ${offset.y}) scale(${zoom})`}
-            style={{ transformOrigin: "center" }}
+            transform={`translate(${offset.x}, ${offset.y}) scale(${zoom}) rotate(${rotation}, 250, 250)`}
           >
-            {/* Track Shadow/Glow */}
             <path
               d={pathData}
               fill="none"
@@ -318,7 +360,6 @@ const TrackMap: React.FC<TrackMapProps> = ({
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            {/* Track Main Path */}
             <path
               d={pathData}
               fill="none"
@@ -334,61 +375,86 @@ const TrackMap: React.FC<TrackMapProps> = ({
               strokeWidth="1"
               strokeDasharray="4 4"
             />
+          </g>
 
-            {/* Driver Dots */}
-            {driverPositions.map((pos) => (
-              <g
-                key={pos.driver}
-                transform={`translate(${pos.x}, ${pos.y})`}
-                className="cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedDriver(pos.driver);
-                }}
-              >
-                <circle
-                  r={
-                    selectedDriver === pos.driver
-                      ? 10 / Math.sqrt(zoom)
-                      : 6 / Math.sqrt(zoom)
-                  }
-                  fill={pos.color}
-                  className={
-                    selectedDriver === pos.driver ? "" : "animate-pulse"
-                  }
-                  style={{
-                    filter: `drop-shadow(0 0 ${8 / zoom}px ${pos.color})`,
-                    stroke: selectedDriver === pos.driver ? "white" : "none",
-                    strokeWidth: 2 / zoom,
-                  }}
-                />
-                {pos.isPitting && (
-                  <polygon
-                    points={`0,${-20 / zoom} ${8 / zoom},${-8 / zoom} ${-8 / zoom},${-8 / zoom}`}
-                    fill="#FFD700"
-                    style={{ filter: `drop-shadow(0 0 ${6 / zoom}px #FFD700)` }}
-                  />
-                )}
-                <text
-                  y={-12 / zoom}
-                  textAnchor="middle"
-                  fill="white"
-                  className="font-display font-bold"
-                  style={{
-                    fontSize: `${8}px`,
-                    textShadow: "0 1px 2px rgba(0,0,0,0.8)",
+          {/* Driver group - follows rotated coordinates but labels stay upright */}
+          <g transform={`translate(${offset.x}, ${offset.y}) scale(${zoom})`}>
+            {driverPositions.map((pos) => {
+              // Rotate pos.x and pos.y around center (250,250)
+              const rad = (rotation * Math.PI) / 180;
+              const cx = 250,
+                cy = 250;
+              const rx =
+                Math.cos(rad) * (pos.x - cx) -
+                Math.sin(rad) * (pos.y - cy) +
+                cx;
+              const ry =
+                Math.sin(rad) * (pos.x - cx) +
+                Math.cos(rad) * (pos.y - cy) +
+                cy;
+
+              return (
+                <g
+                  key={pos.driver}
+                  transform={`translate(${rx}, ${ry})`}
+                  className="cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedDriver(pos.driver);
                   }}
                 >
-                  {pos.driver}
-                </text>
-              </g>
-            ))}
+                  <circle
+                    r={
+                      selectedDriver === pos.driver
+                        ? 10 / Math.sqrt(zoom)
+                        : 6 / Math.sqrt(zoom)
+                    }
+                    fill={pos.color}
+                    className={
+                      selectedDriver === pos.driver ? "" : "animate-pulse"
+                    }
+                    style={{
+                      filter: `drop-shadow(0 0 ${8 / zoom}px ${pos.color})`,
+                      stroke: selectedDriver === pos.driver ? "white" : "none",
+                      strokeWidth: 2 / zoom,
+                    }}
+                  />
+                  {pos.isPitting && (
+                    <polygon
+                      points={`0,${-20 / zoom} ${8 / zoom},${-8 / zoom} ${-8 / zoom},${-8 / zoom}`}
+                      fill="#FFD700"
+                      style={{
+                        filter: `drop-shadow(0 0 ${6 / zoom}px #FFD700)`,
+                      }}
+                    />
+                  )}
+                  <text
+                    y={-12 / zoom}
+                    textAnchor="middle"
+                    fill="white"
+                    className="font-display font-bold"
+                    style={{
+                      fontSize: "8px",
+                      textShadow: "0 1px 2px rgba(0,0,0,0.8)",
+                    }}
+                  >
+                    {pos.driver}
+                  </text>
+                </g>
+              );
+            })}
           </g>
         </svg>
       </div>
 
       {/* Zoom Indicator */}
       <div className="absolute top-4 right-4 flex gap-2">
+        <button
+          onClick={handleRotate}
+          className="bg-pit-dark/80 backdrop-blur-md border border-pit-border px-3 py-1 text-[10px] font-display text-f1-white uppercase tracking-widest hover:border-f1-red transition-colors"
+        >
+          ↻ ROTATE
+        </button>
         {selectedDriver && (
           <button
             onClick={() => setSelectedDriver(null)}

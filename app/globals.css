@@ -16,6 +16,28 @@
   --font-body: "Inter", sans-serif;
 }
 
+@media (max-width: 768px) {
+    input[type="range"] {
+        height: 32px;
+        cursor: pointer;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+        width: 24px;
+        height: 24px;
+        -webkit-appearance: none;
+        appearance: none;
+        border-radius: 50%;
+        background: #e8002d;
+        cursor: pointer;
+    }
+    
+    input[type="range"]::-webkit-slider-runnable-track {
+        height: 4px;
+        cursor: pointer;
+    }
+}
+
 body {
   background-color: var(--color-pit-black);
   color: var(--color-f1-white);

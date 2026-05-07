@@ -10,8 +10,20 @@ ErrorList session 1
 7. line component on jsx are really broken trash out the .filter thing (DONE)
 8. activedriver or Drivers (DONE)
 
-##2026-05-05-ProjectBoxbox
-1. 
+##2026-05-05-ProjectBoxbox \\todo and error list of the day\\
+1. driver position did not move after lap 1
+2. simplifying the data work around the card and overall drivers data
+3. find why there's cutted data and the fix solution
+4. rework the home animation
+5. rework home landing page to be more advertising
+6. add flags meaning in education center
+7. teams section change the color to corespoding team color, because current color on hover are default boxbox red
+8. load map for all circuits
+9. find a way to optimize all this
+10. rnd on theme section
+11. map viewer data need rework
+12. map viewer layout sucks
+13. map data? i dont get it
 
 
 Future Feature
@@ -29,3 +41,4 @@ Future Feature
 12. driver filtering or grouping, timeper sector, group laps by stint, and over UI/UX update
 13. research all teams history
 14. revamp theme section because it didnt do much
+15. lazy loading for api call to fastf1
